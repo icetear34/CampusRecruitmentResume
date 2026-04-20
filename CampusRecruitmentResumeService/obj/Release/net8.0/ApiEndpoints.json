@@ -1,0 +1,28 @@
+[
+  {
+    "ContainingType": "CampusRecruitmentResumeService.Controllers.HealthController",
+    "Method": "Get",
+    "RelativePath": "api/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CampusRecruitmentResumeService.Controllers.JobApplicationController",
+    "Method": "CreateJobApplication",
+    "RelativePath": "api/job-applications",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "jobApplication",
+        "Type": "CampusRecruitmentResumeService.Models.JobApplication",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

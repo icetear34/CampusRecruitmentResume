@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校園徵才履歷表</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #f0f4ff;
+      --surface:  #ffffff;
+      --border:   #dde3f0;
+      --line:     #e8ecf8;
+      --ink:      #0d1126;
+      --muted:    #6b718a;
+      --faint:    #b0b6cc;
+      --blue:     #3b5bdb;
+      --blue-lt:  #e8eeff;
+      --blue-dk:  #2847c0;
+      --red:      #e03131;
+      --red-lt:   #fff0f0;
+      --green:    #2f9e44;
+      --r:  12px;
+      --rsm: 8px;
+      --display: 'Syne', sans-serif;
+      --body:    'Noto Sans TC', sans-serif;
+      --shadow: 0 1px 3px rgba(13,17,38,.06), 0 4px 16px rgba(13,17,38,.05);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--body); background: var(--bg); color: var(--ink); line-height: 1.6; min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--surface);
+      border-bottom: 1.5px solid var(--border);
+      display: flex; align-items: stretch; height: 60px;
+    }
+    .topbar-brand {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 28px; border-right: 1.5px solid var(--border);
+    }
+    .brand-tag {
+      font-family: var(--display); font-size: 11px; font-weight: 800;
+      letter-spacing: .16em; text-transform: uppercase;
+      color: var(--blue); background: var(--blue-lt); padding: 4px 10px; border-radius: 6px;
+    }
+    .brand-title { font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--ink); }
+    .topbar-progress { flex: 1; display: flex; align-items: center; gap: 16px; padding: 0 28px; }
+    .prog-track { flex: 1; height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--blue); border-radius: 99px; width: 0%; transition: width .4s cubic-bezier(.4,0,.2,1); }
+    .prog-pct { font-size: 12px; font-weight: 700; color: var(--blue); min-width: 36px; text-align: right; }
+
+    /* Layout */
+    .page { max-width: 1040px; margin: 0 auto; padding: 36px 20px 80px; display: grid; grid-template-columns: 176px 1fr; gap: 24px; align-items: start; }
+
+    /* Side nav */
+    .sidenav { position: sticky; top: 80px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .sidenav-hd { padding: 12px 14px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); border-bottom: 1px solid var(--line); }
+    .sidenav ul { list-style: none; padding: 6px; }
+    .sidenav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--rsm); text-decoration: none; font-size: 13px; color: var(--muted); transition: background .12s, color .12s; }
+    .sidenav a:hover, .sidenav a.active { background: var(--blue-lt); color: var(--blue); }
+    .sidenav a.done { color: var(--green); }
+    .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background .12s; }
+    .sidenav a:hover .nav-dot, .sidenav a.active .nav-dot { background: var(--blue); }
+    .sidenav a.done .nav-dot { background: var(--green); }
+
+    /* Section */
+    .section { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; transition: border-color .15s; }
+    .section:focus-within { border-color: #a5b4fc; }
+    .sec-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 10px; }
+    .sec-num { font-family: var(--display); font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--blue); background: var(--blue-lt); padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+    .sec-title { font-family: var(--display); font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+    .sec-sub { font-size: 12px; color: var(--faint); margin-left: auto; }
+    .sec-body { padding: 22px 24px; }
+
+    /* Grid */
+    .g { display: grid; gap: 16px; }
+    .g2 { grid-template-columns: repeat(2, 1fr); }
+
+    /* Field */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .req { width: 4px; height: 4px; border-radius: 50%; background: var(--red); display: inline-block; }
+    .hint { font-size: 11.5px; color: var(--faint); }
+
+    /* Inputs */
+    input[type=text], input[type=tel], input[type=email], input[type=date], input[type=number], textarea, select {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--rsm);
+      color: var(--ink); font-family: var(--body); font-size: 14px;
+      transition: border-color .15s, background .15s, box-shadow .15s;
+    }
+    input[type=text], input[type=tel], input[type=email], input[type=date], input[type=number], select { height: 44px; padding: 0 13px; }
+    textarea { padding: 12px 13px; min-height: 108px; resize: vertical; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(59,91,219,.12); }
+    input.err { border-color: var(--red); background: var(--red-lt); }
+    input.good { border-color: #74c69d; }
+    .ferr { font-size: 11.5px; color: var(--red); display: none; gap: 4px; align-items: center; }
+    .ferr.show { display: flex; }
+
+    /* Radio */
+    .radios { display: flex; flex-wrap: wrap; gap: 8px; }
+    .radio-lbl { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border: 1.5px solid var(--border); background: var(--bg); border-radius: 99px; font-size: 13px; cursor: pointer; transition: all .12s; user-select: none; }
+    .radio-lbl:hover { border-color: var(--blue); background: var(--blue-lt); }
+    .radio-lbl:has(input:checked) { border-color: var(--blue); background: var(--blue-lt); color: var(--blue-dk); font-weight: 700; }
+    .radio-lbl input { width: 14px; height: 14px; accent-color: var(--blue); margin: 0; }
+
+    /* Rows */
+    .rows-box { border: 1.5px solid var(--border); border-radius: var(--rsm); overflow: hidden; }
+    .row-item { padding: 16px; border-bottom: 1px solid var(--line); animation: rowIn .2s ease; }
+    .row-item:last-child { border-bottom: none; }
+    @keyframes rowIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+    .row-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .row-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+
+    /* Buttons */
+    button { font-family: var(--body); border: none; cursor: pointer; transition: all .12s; }
+    .btn-add { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 12px; padding: 10px; background: none; border: 1.5px dashed var(--border); border-radius: var(--rsm); font-size: 13px; font-weight: 600; color: var(--muted); }
+    .btn-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+    .btn-rm { padding: 4px 10px; background: var(--red-lt); color: var(--red); border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .btn-rm:hover { background: #ffd5d5; }
+
+    .submit-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .submit-note { font-size: 12px; color: var(--faint); }
+    .btn-submit { display: inline-flex; align-items: center; gap: 8px; padding: 13px 32px; background: var(--blue); color: #fff; border-radius: var(--rsm); font-family: var(--display); font-size: 14px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 4px 16px rgba(59,91,219,.28); }
+    .btn-submit:hover { background: var(--blue-dk); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,91,219,.34); }
+    .btn-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+    .btn-submit.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Modal */
+    .backdrop { position: fixed; inset: 0; background: rgba(13,17,38,.45); backdrop-filter: blur(5px); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .backdrop.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); padding: 32px; width: 90%; max-width: 440px; box-shadow: var(--shadow); transform: scale(.96); transition: transform .2s; }
+    .backdrop.open .modal { transform: scale(1); }
+    .modal-title { font-family: var(--display); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .modal-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .modal-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--rsm); padding: 14px 16px; font-size: 13px; line-height: 2; margin-bottom: 22px; }
+    .modal-summary strong { font-weight: 700; margin-right: 6px; }
+    .modal-summary span { color: var(--muted); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-cancel { padding: 10px 18px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--rsm); font-size: 13px; font-weight: 600; color: var(--muted); }
+    .btn-cancel:hover { background: var(--line); }
+    .btn-confirm { padding: 10px 22px; background: var(--blue); color: #fff; border-radius: var(--rsm); font-family: var(--display); font-size: 13px; font-weight: 800; }
+    .btn-confirm:hover { background: var(--blue-dk); }
+
+    /* Toast */
+    .toasts { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 500; pointer-events: none; }
+    .toast { pointer-events: all; display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); padding: 14px 16px; max-width: 340px; box-shadow: var(--shadow); animation: toastIn .22s ease; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .toast-stripe { width: 3px; border-radius: 99px; flex-shrink: 0; align-self: stretch; }
+    .toast.ok .toast-stripe { background: var(--green); }
+    .toast.err .toast-stripe { background: var(--red); }
+    .toast-ttl { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .toast.ok .toast-ttl { color: var(--green); }
+    .toast.err .toast-ttl { color: var(--red); }
+    .toast-msg { font-size: 12.5px; color: var(--muted); white-space: pre-wrap; }
+
+    /* Responsive */
+    @media (max-width: 860px) { .page { grid-template-columns: 1fr; } .sidenav { display: none; } }
+    @media (max-width: 580px) {
+      .topbar-brand { padding: 0 16px; }
+      .page { padding: 20px 14px 60px; }
+      .sec-body, .sec-head { padding: 16px; }
+      .g2 { grid-template-columns: 1fr; }
+      .submit-row { flex-direction: column; align-items: stretch; }
+      .btn-submit { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="brand-tag">RESUME</span>
+    <span class="brand-title">校園徵才履歷表</span>
+  </div>
+  <div class="topbar-progress">
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-pct" id="progPct">0%</div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="sidenav">
+    <div class="sidenav-hd">區段</div>
+    <ul>
+      <li><a href="#s-basic"  data-s="basic"> <span class="nav-dot"></span>基本資料</a></li>
+      <li><a href="#s-edu"    data-s="edu">   <span class="nav-dot"></span>教育程度</a></li>
+      <li><a href="#s-cert"   data-s="cert">  <span class="nav-dot"></span>專業證照</a></li>
+      <li><a href="#s-exp"    data-s="exp">   <span class="nav-dot"></span>工作經歷</a></li>
+      <li><a href="#s-lang"   data-s="lang">  <span class="nav-dot"></span>語文能力</a></li>
+      <li><a href="#s-remark" data-s="remark"><span class="nav-dot"></span>補充說明</a></li>
+      <li><a href="#s-submit" data-s="submit"><span class="nav-dot"></span>送出</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <form id="appForm" novalidate>
+
+      <section class="section" id="s-basic">
+        <div class="sec-head">
+          <span class="sec-title">基本資料</span>
+          <span class="sec-sub">· 為必填</span>
+        </div>
+        <div class="sec-body">
+          <div class="g g2">
+            <div class="field">
+              <label><span class="req"></span>姓名</label>
+              <input id="name" type="text" maxlength="100" autocomplete="name" placeholder="" />
+              <span class="ferr" id="err-name">姓名為必填</span>
+            </div>
+            <div class="field">
+              <label><span class="req"></span>應徵職務</label>
+              <input id="appliedPosition" type="text" maxlength="100" placeholder="" />
+              <span class="ferr" id="err-appliedPosition">應徵職務為必填</span>
+            </div>
+            <div class="field">
+              <label>出生日期</label>
+              <input id="birthDate" type="date" />
+            </div>
+            <div class="field">
+              <label><span class="req"></span>行動電話</label>
+              <input id="mobilePhone" type="tel" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="0912-345-678" />
+              <span class="ferr" id="err-mobilePhone">行動電話為必填</span>
+            </div>
+            <div class="field">
+              <label>E-Mail</label>
+              <input id="email" type="email" maxlength="255" autocomplete="email" inputmode="email" placeholder="name@example.com" />
+              <span class="ferr" id="err-email">Email 格式不正確</span>
+            </div>
+            <div class="field">
+              <label>聯絡地址</label>
+              <input id="contactAddress" type="text" maxlength="255" autocomplete="street-address" placeholder="" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s-edu">
+        <div class="sec-head"><span class="sec-title">教育程度</span></div>
+        <div class="sec-body">
+          <div class="rows-box"><div id="eduList"></div></div>
+          <button type="button" class="btn-add" id="btnAddEdu">＋ 新增教育資料</button>
+        </div>
+      </section>
+
+      <section class="section" id="s-cert">
+        <div class="sec-head"><span class="sec-title">專業證照</span></div>
+        <div class="sec-body">
+          <div class="rows-box"><div id="certList"></div></div>
+          <button type="button" class="btn-add" id="btnAddCert">＋ 新增證照</button>
+        </div>
+      </section>
+
+      <section class="section" id="s-exp">
+        <div class="sec-head"><span class="sec-title">工作經歷</span></div>
+        <div class="sec-body">
+          <div class="rows-box"><div id="expList"></div></div>
+          <button type="button" class="btn-add" id="btnAddExp">＋ 新增經歷</button>
+        </div>
+      </section>
+
+      <section class="section" id="s-lang">
+        <div class="sec-head"><span class="sec-title">語文能力</span></div>
+        <div class="sec-body">
+          <div class="g g2">
+            <div class="field">
+              <label>英文</label>
+              <div class="radios">
+                <label class="radio-lbl"><input type="radio" name="english" value="Advanced"> 精通</label>
+                <label class="radio-lbl"><input type="radio" name="english" value="Normal"> 普通</label>
+                <label class="radio-lbl"><input type="radio" name="english" value="Basic"> 略懂</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>日文</label>
+              <div class="radios">
+                <label class="radio-lbl"><input type="radio" name="japanese" value="Advanced"> 精通</label>
+                <label class="radio-lbl"><input type="radio" name="japanese" value="Normal"> 普通</label>
+                <label class="radio-lbl"><input type="radio" name="japanese" value="Basic"> 略懂</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s-remark">
+        <div class="sec-head"><span class="sec-title">補充說明</span></div>
+        <div class="sec-body">
+          <div class="field">
+            <label>備註</label>
+            <textarea id="remark" placeholder="軟體工具、程式語言、其他技能或補充事項…"></textarea>
+            <span class="hint">選填</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s-submit">
+        <div class="sec-head"><span class="sec-title">確認送出</span></div>
+        <div class="sec-body">
+          <div class="submit-row">
+            <span class="submit-note">送出前請確認資料正確無誤</span>
+            <button type="submit" class="btn-submit" id="btnSubmit">
+              <div class="spinner"></div>
+              <span class="btn-label">送出履歷</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </form>
+  </main>
+</div>
+
+<div class="backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-title">確認送出？</div>
+    <p class="modal-desc">以下為您填寫的資訊摘要，確認後將送出應徵資料。</p>
+    <div class="modal-summary" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancel">返回修改</button>
+      <button class="btn-confirm" id="btnConfirm">確認送出</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<template id="tplEdu">
+  <div class="row-item edu-row">
+    <div class="row-hd"><span class="row-label">教育資料</span><button type="button" class="btn-rm rm-btn">✕ 移除</button></div>
+    <div class="g g2">
+      <div class="field"><label>學校名稱</label><input type="text" class="school-name" maxlength="200" placeholder="" /></div>
+      <div class="field"><label>學歷</label><input type="text" class="degree" maxlength="100" placeholder="學士 / 碩士" /></div>
+      <div class="field"><label>科系</label><input type="text" class="field-of-study" maxlength="200" placeholder="" /></div>
+      <div class="field"></div>
+      <div class="field"><label>入學年</label><input type="number" class="start-year" min="1900" max="2100" inputmode="numeric" placeholder="" /></div>
+      <div class="field"><label>畢業年</label><input type="number" class="end-year" min="1900" max="2100" inputmode="numeric" placeholder="" /></div>
+    </div>
+  </div>
+</template>
+
+<template id="tplCert">
+  <div class="row-item cert-row">
+    <div class="row-hd"><span class="row-label">證照資料</span><button type="button" class="btn-rm rm-btn">✕ 移除</button></div>
+    <div class="g g2">
+      <div class="field"><label>證照名稱</label><input type="text" class="cert-name" maxlength="200" placeholder="TOEIC 850 / 乙級技術士" /></div>
+      <div class="field"><label>取得日期</label><input type="date" class="cert-date" /></div>
+    </div>
+  </div>
+</template>
+
+<template id="tplExp">
+  <div class="row-item exp-row">
+    <div class="row-hd"><span class="row-label">經歷資料</span><button type="button" class="btn-rm rm-btn">✕ 移除</button></div>
+    <div class="g g2">
+      <div class="field"><label>公司名稱</label><input type="text" class="company-name" maxlength="200" placeholder="" /></div>
+      <div class="field"><label>職稱</label><input type="text" class="position" maxlength="100" placeholder="" /></div>
+      <div class="field"><label>到職年</label><input type="number" class="start-year" min="1900" max="2100" inputmode="numeric" placeholder="西元年" /></div>
+      <div class="field"><label>到職月</label><input type="number" class="start-month" min="1" max="12" inputmode="numeric" placeholder="" /></div>
+      <div class="field"><label>離職年</label><input type="number" class="end-year" min="1900" max="2100" inputmode="numeric" placeholder="西元年" /></div>
+      <div class="field"><label>離職月</label><input type="number" class="end-month" min="1" max="12" inputmode="numeric" placeholder="" /></div>
+    </div>
+  </div>
+</template>
+
+<script>
+  const API = '/CampusRecruitmentResumeService/api/job-applications';
+
+  function addRow(tplId, listId) {
+    const frag = document.getElementById(tplId).content.cloneNode(true);
+    const row  = frag.querySelector('.row-item');
+    row.querySelector('.rm-btn').onclick = () => {
+      row.style.cssText = 'opacity:0;transform:translateX(6px);transition:.17s';
+      setTimeout(() => { row.remove(); progress(); }, 170);
+    };
+    row.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', progress));
+    document.getElementById(listId).appendChild(frag);
+    progress();
+  }
+
+  document.getElementById('btnAddEdu') .onclick = () => addRow('tplEdu',  'eduList');
+  document.getElementById('btnAddCert').onclick = () => addRow('tplCert', 'certList');
+  document.getElementById('btnAddExp') .onclick = () => addRow('tplExp',  'expList');
+
+  function blurValidate(id, check) {
+    const el  = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    el.addEventListener('blur', () => {
+      const bad = check(el.value.trim());
+      el.classList.toggle('err',  bad);
+      el.classList.toggle('good', !bad && !!el.value.trim());
+      if (err) err.classList.toggle('show', bad);
+      progress();
+    });
+    el.addEventListener('input', () => {
+      el.classList.remove('err');
+      if (err) err.classList.remove('show');
+      progress();
+    });
+  }
+
+  blurValidate('name',            v => !v);
+  blurValidate('appliedPosition', v => !v);
+  blurValidate('mobilePhone',     v => !v);
+  blurValidate('email',           v => v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+
+  function progress() {
+    let filled = 0, total = 5;
+    ['name','appliedPosition','mobilePhone'].forEach(id => { if (document.getElementById(id)?.value.trim()) filled++; });
+    ['email','remark'].forEach(id => { if (document.getElementById(id)?.value.trim()) filled += .5; });
+    filled += document.querySelectorAll('input[type=radio]:checked').length * .5;
+    const pct = Math.min(100, Math.round(filled / total * 100));
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progPct').textContent  = pct + '%';
+    const allBasic = ['name','appliedPosition','mobilePhone'].every(id => document.getElementById(id)?.value.trim());
+    document.querySelector('[data-s=basic]')?.classList.toggle('done', allBasic);
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      document.querySelectorAll('.sidenav a').forEach(a => a.classList.remove('active'));
+      const a = document.querySelector(`.sidenav a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    });
+  }, { threshold: 0.45 });
+  document.querySelectorAll('.section[id]').forEach(s => obs.observe(s));
+
+  const $v    = id => document.getElementById(id)?.value.trim() || '';
+  const $chk  = name => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
+  const toInt = v => { const n = Number(v); return Number.isInteger(n) && v !== '' ? n : null; };
+
+  function collectEdu() {
+    return [...document.querySelectorAll('.edu-row')].map(r => {
+      const schoolName = r.querySelector('.school-name')?.value.trim() || '';
+      const degree = r.querySelector('.degree')?.value.trim() || '';
+      const fieldOfStudy = r.querySelector('.field-of-study')?.value.trim() || '';
+      const startYear = toInt(r.querySelector('.start-year')?.value);
+      const endYear = toInt(r.querySelector('.end-year')?.value);
+      
+      // 只有當至少有一個必要欄位有值時才返回
+      if (!schoolName && !degree && !fieldOfStudy && !startYear) return null;
+      
+      return {
+        schoolName: schoolName,
+        degree: degree,
+        fieldOfStudy: fieldOfStudy,
+        startYear: startYear || 0,
+        endYear: endYear
+      };
+    }).filter(Boolean);
+  }
+
+  function collectCert() {
+    return [...document.querySelectorAll('.cert-row')].map(r => {
+      const certificateName = r.querySelector('.cert-name')?.value.trim() || '';
+      const obtainedDate = r.querySelector('.cert-date')?.value || '';
+      
+      // 只有當證書名稱有值時才返回
+      if (!certificateName) return null;
+      
+      return {
+        certificateName: certificateName,
+        obtainedDate: obtainedDate
+      };
+    }).filter(Boolean);
+  }
+
+  function collectExp() {
+    return [...document.querySelectorAll('.exp-row')].map(r => {
+      const companyName = r.querySelector('.company-name')?.value.trim() || '';
+      const position = r.querySelector('.position')?.value.trim() || '';
+      const startYear = toInt(r.querySelector('.start-year')?.value);
+      const startMonth = toInt(r.querySelector('.start-month')?.value);
+      const endYear = toInt(r.querySelector('.end-year')?.value);
+      const endMonth = toInt(r.querySelector('.end-month')?.value);
+      
+      // 只有當至少有公司名稱或職位時才返回
+      if (!companyName && !position) return null;
+      
+      return {
+        companyName: companyName,
+        position: position,
+        startMonth: startMonth || 0,
+        startYear: startYear || 0,
+        endMonth: endMonth,
+        endYear: endYear
+      };
+    }).filter(Boolean);
+  }
+
+  function buildPayload() {
+    const birthDate = document.getElementById('birthDate')?.value || null;
+    const email = $v('email') || null;
+    const contactAddress = $v('contactAddress') || null;
+    const remark = $v('remark') || null;
+    const languageSkillsEnglish = $chk('english');
+    const languageSkillsJapanese = $chk('japanese');
+    
+    return {
+      name: $v('name'),
+      appliedPosition: $v('appliedPosition'),
+      birthDate: birthDate,
+      mobilePhone: $v('mobilePhone'),
+      email: email,
+      contactAddress: contactAddress,
+      educations: collectEdu(),
+      certificates: collectCert(),
+      experiences: collectExp(),
+      languageSkillsEnglish: languageSkillsEnglish,
+      languageSkillsJapanese: languageSkillsJapanese,
+      remark: remark
+    };
+  }
+
+  function validate(p) {
+    const e = [];
+    const currentYear = new Date().getFullYear();
+    
+    // 必填欄位
+    if (!p.name) e.push('姓名為必填');
+    if (!p.appliedPosition) e.push('應徵職務為必填');
+    if (!p.mobilePhone) e.push('行動電話為必填');
+    
+    // Email 格式
+    if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) e.push('Email 格式不正確');
+    
+    // 出生日期
+    if (p.birthDate) {
+      const birthDate = new Date(p.birthDate);
+      if (birthDate > new Date()) e.push('出生日期不可大於今天');
+    }
+    
+    // 教育背景驗證
+    p.educations.forEach((i,n) => {
+      if (i.startYear && (i.startYear < 1900 || i.startYear > currentYear)) {
+        e.push(`教育第${n+1}筆：開始年份必須在 1900 到 ${currentYear} 之間`);
+      }
+      if (i.endYear && (i.endYear < 1900 || i.endYear > currentYear)) {
+        e.push(`教育第${n+1}筆：結束年份必須在 1900 到 ${currentYear} 之間`);
+      }
+      if (i.endYear && i.startYear && i.endYear < i.startYear) {
+        e.push(`教育第${n+1}筆：結束年份不可小於開始年份`);
+      }
+    });
+    
+    // 工作經歷驗證
+    p.experiences.forEach((i,n) => {
+      if (i.startMonth && (i.startMonth < 1 || i.startMonth > 12)) {
+        e.push(`經歷第${n+1}筆：開始月份必須在 1 到 12 之間`);
+      }
+      if (i.endMonth && (i.endMonth < 1 || i.endMonth > 12)) {
+        e.push(`經歷第${n+1}筆：結束月份必須在 1 到 12 之間`);
+      }
+    });
+    
+    // 語言技能驗證
+    const validLevels = ['Advanced', 'Normal', 'Basic'];
+    if (p.languageSkillsEnglish && !validLevels.includes(p.languageSkillsEnglish)) {
+      e.push('英語等級僅允許 Advanced/Normal/Basic');
+    }
+    if (p.languageSkillsJapanese && !validLevels.includes(p.languageSkillsJapanese)) {
+      e.push('日語等級僅允許 Advanced/Normal/Basic');
+    }
+    
+    return e;
+  }
+
+  const modal   = document.getElementById('modal');
+  const modalBd = document.getElementById('modalBody');
+
+  document.getElementById('appForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const p = buildPayload(), errs = validate(p);
+    if (errs.length) {
+      toast('err', '請修正以下問題', errs.join('\n'));
+      ['name','appliedPosition','mobilePhone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) el.classList.add('err');
+      });
+      return;
+    }
+    const lv = { Advanced:'精通', Normal:'普通', Basic:'略懂' };
+    modalBd.innerHTML = `
+      <strong>姓名</strong><span>${p.name}</span><br>
+      <strong>應徵職務</strong><span>${p.appliedPosition}</span><br>
+      <strong>行動電話</strong><span>${p.mobilePhone}</span><br>
+      ${p.email?`<strong>Email</strong><span>${p.email}</span><br>`:''}
+      ${p.birthDate?`<strong>出生日期</strong><span>${p.birthDate}</span><br>`:''}
+      <strong>教育資料</strong><span>${p.educations.length} 筆</span><br>
+      <strong>證照資料</strong><span>${p.certificates.length} 筆</span><br>
+      <strong>工作經歷</strong><span>${p.experiences.length} 筆</span><br>
+      ${p.languageSkillsEnglish?`<strong>英文</strong><span>${lv[p.languageSkillsEnglish]}</span><br>`:''}
+      ${p.languageSkillsJapanese?`<strong>日文</strong><span>${lv[p.languageSkillsJapanese]}</span><br>`:''}
+    `;
+    modal.classList.add('open');
+  });
+
+  document.getElementById('btnCancel').onclick = () => modal.classList.remove('open');
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+  document.getElementById('btnConfirm').onclick = async () => {
+    modal.classList.remove('open');
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true; btn.classList.add('loading');
+    try {
+      const res = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload()) });
+      const raw = await res.text();
+      let result = null;
+      try { result = raw ? JSON.parse(raw) : null; } catch {}
+      
+      if (!res.ok) {
+        // 處理驗證錯誤
+        if (result && result.errors) {
+          const errorMessages = [];
+          for (const [field, messages] of Object.entries(result.errors)) {
+            if (Array.isArray(messages)) {
+              messages.forEach(msg => errorMessages.push(`${field}: ${msg}`));
+            }
+          }
+          throw new Error(errorMessages.join('\n') || result.message || '驗證失敗');
+        }
+        throw new Error(result?.message || raw || `HTTP ${res.status}`);
+      }
+      
+      toast('ok', '送出成功', result?.message || '您的申請已成功提交');
+      document.getElementById('appForm').reset();
+      ['eduList','certList','expList'].forEach(id => document.getElementById(id).innerHTML = '');
+      addRow('tplEdu','eduList'); addRow('tplCert','certList'); addRow('tplExp','expList');
+      progress();
+    } catch(err) {
+      // 顯示多行錯誤訊息
+      const errorMsg = err.message || '請稍後再試';
+      toast('err', '送出失敗', errorMsg.replace(/\n/g, '<br>'));
+    } finally {
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  };
+
+  function toast(type, title, msg) {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-stripe"></div><div class="toast-body"><div class="toast-ttl">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(() => { el.style.cssText = 'opacity:0;transform:translateY(8px);transition:.28s'; setTimeout(() => el.remove(), 280); }, type==='err'?6000:4000);
+  }
+
+  addRow('tplEdu','eduList');
+  addRow('tplCert','certList');
+  addRow('tplExp','expList');
+  progress();
+
+  document.getElementById('appForm').querySelectorAll('input,textarea,select').forEach(el => {
+    el.addEventListener('change', progress);
+    el.addEventListener('input',  progress);
+  });
+</script>
+</body>
+</html>
